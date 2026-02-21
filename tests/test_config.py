@@ -1,3 +1,9 @@
+"""
+CTW: Proverbs 10:9 — “He that walketh uprightly walketh surely”
+Intent: Verify config behavior with integrity-focused tests for safe defaults.
+Theme: Integrity
+"""
+
 from private_ops.config import OpsConfig
 
 
