@@ -1,3 +1,9 @@
+"""
+CTW: Proverbs 12:22 — “Lying lips are abomination to the LORD”
+Intent: Enforce truthful, valid runtime configuration before execution.
+Theme: Truth
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

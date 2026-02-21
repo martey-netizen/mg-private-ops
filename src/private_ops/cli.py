@@ -1,3 +1,9 @@
+"""
+CTW: 1 Corinthians 14:40 — “Let all things be done decently and in order.”
+Intent: Keep command flow explicit and orderly for predictable operations.
+Theme: Order
+"""
+
 from __future__ import annotations
 
 import argparse
