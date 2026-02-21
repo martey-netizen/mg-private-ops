@@ -44,6 +44,13 @@ def test_ids_are_stable() -> None:
     assert e1 == e2
 
 
+def test_id_hashing_is_unambiguous_for_delimiter_like_content() -> None:
+    left = node_id("a", "b|c")
+    right = node_id("a|b", "c")
+
+    assert left != right
+
+
 def test_adapter_output_shape() -> None:
     request = TransformRequest(
         transform="resolve.phone_to_entities",
