@@ -1,5 +1,5 @@
 """
-CTW: Colossians 3:23 — “whatsoever ye do, do it heartily”
+CTW: Colossians 3:23 — “whatsoever ye do, do it heartily, as to the Lord.”
 Intent: Set a workmanship standard for the package and its public surface.
 Theme: Workmanship
 """
