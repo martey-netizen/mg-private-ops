@@ -12,6 +12,7 @@ dependencies = []
 
 [project.scripts]
 private-ops = "private_ops.cli:main"
+private_ops = "private_ops.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
