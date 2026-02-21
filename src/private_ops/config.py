@@ -3,12 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import os
 
-_ALLOWED_ENVS = {"dev", "staging", "prod"}
-_ALLOWED_PROVIDERS = {"ollama", "openai", "azure"}
-_ALLOWED_LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
 
-
-@dataclass(slots=True)
+@dataclass(frozen=True)
 class OpsConfig:
     env: str = "dev"
     provider: str = "ollama"
@@ -21,30 +17,32 @@ class OpsConfig:
             env=os.getenv("PRIVATE_OPS_ENV", "dev"),
             provider=os.getenv("PRIVATE_OPS_PROVIDER", "ollama"),
             model=os.getenv("PRIVATE_OPS_MODEL", "llama3.1"),
-            log_level=os.getenv("PRIVATE_OPS_LOG_LEVEL", "INFO").upper(),
+            log_level=os.getenv("PRIVATE_OPS_LOG_LEVEL", "INFO"),
         )
 
     def validate(self) -> list[str]:
         errors: list[str] = []
 
-        if self.env not in _ALLOWED_ENVS:
+        if self.env not in {"dev", "staging", "prod"}:
             errors.append(
-                f"env must be one of {sorted(_ALLOWED_ENVS)}, got '{self.env}'"
+                f"env must be one of dev/staging/prod, got '{self.env}'"
             )
 
-        if self.provider not in _ALLOWED_PROVIDERS:
+        if self.provider not in {"ollama", "openai", "azure"}:
             errors.append(
-                "provider must be one of "
-                f"{sorted(_ALLOWED_PROVIDERS)}, got '{self.provider}'"
+                f"provider must be one of ollama/openai/azure, got '{self.provider}'"
             )
 
         if not self.model.strip():
             errors.append("model must not be empty")
 
-        if self.log_level not in _ALLOWED_LOG_LEVELS:
-            errors.append(
-                "log_level must be one of "
-                f"{sorted(_ALLOWED_LOG_LEVELS)}, got '{self.log_level}'"
-            )
+        if self.log_level.upper() not in {
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL",
+        }:
+            errors.append("log_level must be a standard logging level")
 
         return errors
