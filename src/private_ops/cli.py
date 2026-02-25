@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from private_ops.config import OpsConfig
+from private_ops.adapters.maltego import to_maltego_mapping
 from private_ops.protocol.models import GraphPayload, TransformRequest
 from private_ops.transforms import dispatch
 
@@ -52,8 +53,11 @@ def _cmd_run_transform(request_path: str, out_path: str, ndjson_path: str | None
     request = TransformRequest.from_dict(_load_json(request_path))
     response = dispatch(request)
 
+    response_payload = response.to_dict()
+    response_payload["maltego"] = to_maltego_mapping(response.graph)
+
     Path(out_path).write_text(
-        json.dumps(response.to_dict(), indent=2, sort_keys=True),
+        json.dumps(response_payload, indent=2, sort_keys=True),
         encoding="utf-8",
     )
 
@@ -63,7 +67,7 @@ def _cmd_run_transform(request_path: str, out_path: str, ndjson_path: str | None
         ]
         lines.extend({"type": "node", "data": node.to_dict()} for node in response.graph.nodes)
         lines.extend({"type": "edge", "data": edge.to_dict()} for edge in response.graph.edges)
-        lines.append({"type": "maltego", "data": response.maltego})
+        lines.append({"type": "maltego", "data": to_maltego_mapping(response.graph)})
         lines.append({"type": "errors", "data": response.errors})
         with Path(ndjson_path).open("w", encoding="utf-8") as handle:
             for line in lines:

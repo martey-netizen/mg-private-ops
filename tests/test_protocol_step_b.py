@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from private_ops.adapters.maltego import to_maltego_mapping
+from private_ops.cli import main
 from private_ops.protocol.ids import edge_id, node_id
 from private_ops.protocol.models import GraphPayload, RunMeta, TransformRequest
-from private_ops.transforms import dispatch
+from private_ops.transforms import dispatch, get_transform, list_transforms
 
 
 def test_graph_model_validation_detects_bad_edges() -> None:
@@ -51,6 +55,19 @@ def test_id_hashing_is_unambiguous_for_delimiter_like_content() -> None:
     assert left != right
 
 
+def test_registry_exposes_phone_transform() -> None:
+    assert get_transform("resolve.phone_to_entities") is not None
+    assert "resolve.phone_to_entities" in list_transforms()
+
+
+def test_dispatch_unknown_transform_returns_error_status() -> None:
+    response = dispatch(TransformRequest(transform="missing.transform", inputs={}))
+
+    assert response.ok is False
+    assert response.status == "error"
+    assert "Unknown transform" in response.errors[0]
+
+
 def test_adapter_output_shape() -> None:
     request = TransformRequest(
         transform="resolve.phone_to_entities",
@@ -65,7 +82,7 @@ def test_adapter_output_shape() -> None:
     assert {"id", "type", "value"}.issubset(mapping["entities"][0].keys())
 
 
-def test_starter_transform_is_deterministic() -> None:
+def test_phone_transform_is_deterministic_with_expected_graph_size() -> None:
     request = TransformRequest(
         transform="resolve.phone_to_entities",
         inputs={"phone": "(555) 123-4567"},
@@ -76,3 +93,36 @@ def test_starter_transform_is_deterministic() -> None:
 
     assert first.to_dict() == second.to_dict()
     assert first.ok is True
+    assert first.status == "ok"
+    assert len(first.graph.nodes) == 3
+    assert len(first.graph.edges) == 2
+
+
+def test_cli_run_transform_and_validate_graph_fixture(tmp_path: Path, monkeypatch) -> None:
+    fixture_request = Path("tests/fixtures/phone_request.json")
+    output_path = tmp_path / "out.json"
+    ndjson_path = tmp_path / "out.ndjson"
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "private_ops",
+            "run-transform",
+            str(fixture_request),
+            "--out",
+            str(output_path),
+            "--ndjson",
+            str(ndjson_path),
+        ],
+    )
+    assert main() == 0
+
+    response_payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert response_payload["status"] == "ok"
+    assert "maltego" in response_payload
+
+    monkeypatch.setattr(
+        "sys.argv",
+        ["private_ops", "validate-graph", str(output_path)],
+    )
+    assert main() == 0
