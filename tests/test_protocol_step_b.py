@@ -142,6 +142,28 @@ def test_phone_transform_is_deterministic_with_expected_graph_size() -> None:
     assert len(first.graph.edges) == 2
 
 
+
+def test_dispatch_run_id_prefix_matches_transform_name() -> None:
+    starter_response = dispatch(
+        TransformRequest(
+            transform="starter.phone_to_entities",
+            inputs={"phone": "(555) 123-4567"},
+        )
+    )
+    resolve_response = dispatch(
+        TransformRequest(
+            transform="resolve.phone_to_entities",
+            inputs={"phone": "(555) 123-4567"},
+        )
+    )
+
+    starter_run_id = starter_response.graph.run_meta.run_id
+    resolve_run_id = resolve_response.graph.run_meta.run_id
+
+    assert starter_run_id.startswith("run:starter.phone_to_entities:")
+    assert resolve_run_id.startswith("run:resolve.phone_to_entities:")
+    assert starter_run_id != resolve_run_id
+
 def test_cli_run_transform_and_validate_graph_fixture(tmp_path: Path, monkeypatch) -> None:
     fixture_request = Path("tests/fixtures/phone_request.json")
     output_path = tmp_path / "out.json"
