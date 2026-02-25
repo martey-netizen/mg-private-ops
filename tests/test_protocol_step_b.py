@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
+
+import pytest
 from pathlib import Path
 
 from private_ops.adapters.maltego import to_maltego_mapping
 from private_ops.cli import main
 from private_ops.protocol.ids import edge_id, node_id
 from private_ops.protocol.models import GraphPayload, RunMeta, TransformRequest
-from private_ops.transforms import dispatch, get_transform, list_transforms
+from private_ops.transforms import dispatch, get_transform, list_transforms, register
 
 
 def test_graph_model_validation_detects_bad_edges() -> None:
@@ -53,6 +55,48 @@ def test_id_hashing_is_unambiguous_for_delimiter_like_content() -> None:
     right = node_id("a|b", "c")
 
     assert left != right
+
+
+def test_registering_duplicate_transform_name_raises_error() -> None:
+    from private_ops.transforms.registry import DuplicateTransformNameError
+
+    @register("tests.duplicate_transform")
+    def _first(request: TransformRequest) -> GraphPayload:
+        return GraphPayload(
+            run_meta=request.run_meta or RunMeta(run_id="r1", transform=request.transform),
+            nodes=[],
+            edges=[],
+        )
+
+    try:
+        with pytest.raises(DuplicateTransformNameError):
+
+            @register("tests.duplicate_transform")
+            def _second(request: TransformRequest) -> GraphPayload:
+                return GraphPayload(
+                    run_meta=request.run_meta
+                    or RunMeta(run_id="r2", transform=request.transform),
+                    nodes=[],
+                    edges=[],
+                )
+    finally:
+        register("tests.duplicate_transform", override=True)(_first)
+
+
+def test_dispatch_resolve_phone_to_entities_uses_phone_implementation() -> None:
+    from private_ops.transforms import starter as _starter  # noqa: F401
+
+    assert get_transform("starter.phone_to_entities") is not None
+
+    request = TransformRequest(
+        transform="resolve.phone_to_entities",
+        inputs={"phone": "(555) 123-4567"},
+    )
+    response = dispatch(request)
+
+    assert response.ok is True
+    assert len(response.graph.nodes) == 3
+    assert len(response.graph.edges) == 2
 
 
 def test_registry_exposes_phone_transform() -> None:
