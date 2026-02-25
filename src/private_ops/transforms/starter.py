@@ -13,7 +13,7 @@ from private_ops.protocol.normalize import normalize_phone
 from private_ops.transforms.registry import register
 
 
-@register("resolve.phone_to_entities")
+@register("starter.phone_to_entities")
 def resolve_phone_to_entities(request: TransformRequest) -> GraphPayload:
     raw_phone = str(request.inputs.get("phone", ""))
     normalized_phone = normalize_phone(raw_phone)

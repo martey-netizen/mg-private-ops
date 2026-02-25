@@ -8,8 +8,17 @@ TransformFn = Callable[[TransformRequest], GraphPayload]
 _REGISTRY: dict[str, TransformFn] = {}
 
 
-def register(name: str) -> Callable[[TransformFn], TransformFn]:
+class DuplicateTransformNameError(ValueError):
+    """Raised when attempting to register a transform name that already exists."""
+
+
+def register(name: str, *, override: bool = False) -> Callable[[TransformFn], TransformFn]:
     def _decorator(fn: TransformFn) -> TransformFn:
+        if name in _REGISTRY and not override:
+            raise DuplicateTransformNameError(
+                f"Transform '{name}' is already registered. "
+                "Pass override=True to replace it explicitly."
+            )
         _REGISTRY[name] = fn
         return fn
 
