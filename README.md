@@ -65,10 +65,10 @@ pip install -e .
 private-ops validate-config
 private-ops plan
 
-# Step B commands
-private-ops run-transform request.json --out out.json
-private-ops run-transform request.json --out out.json --ndjson out.ndjson
-private-ops validate-graph graph.json
+# Step B commands (with fixtures in this repo)
+private-ops run-transform tests/fixtures/phone_request.json --out out.json
+private-ops run-transform tests/fixtures/phone_request.json --out out.json --ndjson out.ndjson
+private-ops validate-graph out.json
 ```
 
 Optional environment variables:

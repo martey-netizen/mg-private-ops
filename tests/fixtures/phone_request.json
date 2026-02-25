@@ -1,0 +1,12 @@
+{
+  "transform": "resolve.phone_to_entities",
+  "inputs": {
+    "phone": "+1 (555) 123-4567"
+  },
+  "run_meta": {
+    "run_id": "fixture-run-1",
+    "transform": "resolve.phone_to_entities",
+    "request_id": "fixture-req-1",
+    "generated_at": ""
+  }
+}
