@@ -24,7 +24,16 @@ def dispatch(request: TransformRequest) -> TransformResponse:
             errors=[f"Unknown transform '{request.transform}'. Available transforms: {available}."],
         )
 
-    graph = transform(request)
+    run_meta = request.run_meta
+    if run_meta is None:
+        request_id = "request"
+        run_meta = RunMeta(
+            run_id=f"run:{request.transform}:{request_id}",
+            transform=request.transform,
+            request_id=request_id,
+        )
+
+    graph = transform(TransformRequest(transform=request.transform, inputs=request.inputs, run_meta=run_meta))
     errors = graph.validate()
     return TransformResponse(
         ok=len(errors) == 0,

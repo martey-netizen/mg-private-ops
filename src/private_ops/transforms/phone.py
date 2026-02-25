@@ -19,7 +19,7 @@ def resolve_phone_to_entities(request: TransformRequest) -> GraphPayload:
     normalized_phone = normalize_phone(raw_phone)
 
     run_meta = request.run_meta or RunMeta(
-        run_id=f"run:resolve.phone_to_entities:{normalized_phone}",
+        run_id=f"run:{request.transform}:{normalized_phone}",
         transform=request.transform,
     )
 
